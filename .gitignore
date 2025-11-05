@@ -28,5 +28,6 @@ cookies/
 Thumbs.db
 
 # Claude-specific files
+.claude/
 CLAUDE.md
 AGENTS.md

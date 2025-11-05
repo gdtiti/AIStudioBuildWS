@@ -1,5 +1,6 @@
 import multiprocessing
 import os
+import time
 
 from browser.instance import run_browser_instance
 from utils.logger import setup_logging
@@ -78,7 +79,7 @@ def main():
         return
 
     processes = []
-    for profile in instance_profiles:
+    for i, profile in enumerate(instance_profiles, 1):
         final_config = global_settings.copy()
         final_config.update(profile)
 
@@ -107,15 +108,21 @@ def main():
             )
             continue
 
+        logger.info(f"正在启动第 {i}/{len(instance_profiles)} 个浏览器实例 (cookie: {cookie_candidate})...")
         process = multiprocessing.Process(target=run_browser_instance, args=(final_config,))
         processes.append(process)
         process.start()
+
+        # 如果不是最后一个实例，等待30秒再启动下一个实例，避免并发启动导致的高CPU占用
+        if i < len(instance_profiles):
+            logger.info(f"等待 30 秒后启动下一个实例...")
+            time.sleep(30)
 
     if not processes:
         logger.error("错误: 没有有效的实例配置可以启动。")
         return
 
-    logger.info(f"已成功启动 {len(processes)} 个浏览器实例。按 Ctrl+C 终止所有实例。")
+    logger.info(f"所有 {len(processes)} 个浏览器实例已启动完成。按 Ctrl+C 终止所有实例。")
 
     try:
         for process in processes:
